@@ -1,0 +1,8 @@
+# Python pycache:
+__pycache__/
+
+# Files
+Ideas.txt
+
+# JSON files
+.json
