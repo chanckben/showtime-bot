@@ -1,13 +1,6 @@
-#from Scrapers.Structs.Cinema import Cinema
-#from Structs.Movie import Movie
-#from Scrapers.Structs.Showtime import Showtime
-from datetime import time, datetime
+from datetime import datetime
 import pandas as pd
 import re
-from time import sleep
-from selenium import webdriver
-import os
-from os.path import dirname
 
 class ShawScraper:
     def __init__(self):

@@ -6,10 +6,6 @@ import pandas as pd
 import re
 from time import sleep
 
-import os
-from os.path import dirname
-from selenium import webdriver
-
 
 class CathayScraper:
     def __init__(self):
