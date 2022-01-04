@@ -47,7 +47,7 @@ class DatabaseManager:
             if movie_name not in self.movie_title_to_id:
                 idx = len(self.movie_title_to_id) + 1
                 self.movie_title_to_id[movie_name] = f"M{idx}" # HLEN, HSET
-                self.movie_id_to_title[idx] = movie_name
+                self.movie_id_to_title[f"M{idx}"] = movie_name
             movie_id = self.movie_title_to_id[movie_name] # HGET
 
             key = self.serialize_db_key(movie_id, date)
@@ -57,7 +57,10 @@ class DatabaseManager:
             else:
                 temp_dict[key] = [value]
 
+        print(temp_dict)
         for key, value in temp_dict.items():
+            if key in self.db:
+                value = json.loads(self.db[key]) + value
             self.db[key] = json.dumps(value)
         with open('db_data.json', 'w') as f:
             json.dump(self.db, f)

@@ -1,6 +1,7 @@
 # Manages all scrapers and receives requests from frontend
 
 from Scrapers.CathayScraper import CathayScraper
+from Scrapers.ShawScraper import ShawScraper
 from DatabaseManager import DatabaseManager
 import datetime
 import json
@@ -16,6 +17,7 @@ class ShowtimeManager:
         # Scrapers
         self.scrapers = []
         self.scrapers.append(CathayScraper())
+        self.scrapers.append(ShawScraper())
         self.provider_id_to_scraper = dict((scraper.get_provider_id(), scraper.__class__) for scraper in self.scrapers)
         # Database
         self.db_manager = DatabaseManager()
