@@ -4,7 +4,6 @@ from Scrapers.CathayScraper import CathayScraper
 from Scrapers.ShawScraper import ShawScraper
 from Database.DatabaseManager import DatabaseManager
 import datetime
-import json
 import os
 from os.path import dirname
 from selenium import webdriver
