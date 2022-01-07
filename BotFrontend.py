@@ -5,7 +5,7 @@ from Markup import build_keyboard
 from ShowtimeManager import ShowtimeManager
 import logging
 import os
-# import redis
+import signal
 import sys
 
 # Enabling logging
@@ -35,15 +35,17 @@ else:
     logger.error("No MODE specified!")
     sys.exit(1)
 
-# Connect to Redis
-
-# r = redis.from_url(os.environ.get("REDIS_URL"))
-
 # Initialise ShowtimeManager and start scraping
 
 manager = ShowtimeManager()
 manager.init_webdriver()
 manager.start_scraping()
+
+def sigint_handler(signal_no, stack_frame):
+    logger.info("SIGINT detected, stopping all processes")
+    manager.shutdown()
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 # Functions for commands
 
@@ -106,11 +108,11 @@ def callback_date(update, context):
     showtimes = manager.get_showtimes(movie_id, date)
 
     data = []
-    for provider, loc_time_dic in showtimes.items():
-        for cinema, times in loc_time_dic.items():
-            cinema_name = f"{manager.get_provider_name(provider)} {manager.get_cinema_name(cinema, provider)}"
+    for provider, cinema_time_df in showtimes.groupby("Provider"):
+        for cinema, time_df in cinema_time_df.groupby("Cinema"):
+            times = [time.strftime('%H:%M') for time in time_df["Time"].values.tolist()]
             time_str = ', '.join(times)
-            reply += f"\n\n{cinema_name}:\n{time_str}"
+            reply += f"\n\n{manager.get_provider_name(provider)} {manager.get_cinema_name(cinema, provider)}:\n{time_str}"
             data.append({"provider": provider, "cinema": cinema, "movie": movie_id, "date": date})
 
     query.edit_message_text(text=reply)
@@ -169,8 +171,8 @@ def callback_cinema(update, context):
     callback_map = {}
     for time in times:
         info = {"provider": provider_id, "cinema": cinema_id, "movie": movie_id, "date": date, "time": time}
-        callback_map[time] = info
-    keyboard = build_keyboard(times, callback_map)
+        callback_map[time.strftime('%H:%M')] = info
+    keyboard = build_keyboard(sorted(callback_map.keys()), callback_map)
     query.edit_message_text(text=reply, reply_markup=keyboard)
     return BotState.AWAIT_TIME
 
@@ -186,7 +188,7 @@ def callback_time(update, context):
 
     session = manager.get_booking_link(movie_id, date, provider_id, cinema_id, time)
     reply = f"Cinema chosen: {manager.get_provider_name(provider_id)} {manager.get_cinema_name(cinema_id, provider_id)}"
-    reply += f"\nTime chosen: {time}"
+    reply += f"\nTime chosen: {time.strftime('%H:%M')}"
     reply += f"\nBooking link: {session}"
     query.edit_message_text(text=reply)
     return

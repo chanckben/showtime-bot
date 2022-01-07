@@ -3,6 +3,9 @@ __pycache__/
 
 # Files
 Ideas.txt
+Backup/
+Database/connect.py
+Database/database.ini
 
 # JSON files
 .json

@@ -4,6 +4,7 @@ from Scrapers.Structs.Showtime import Showtime
 from datetime import time, datetime
 import pandas as pd
 import re
+from selenium.common.exceptions import NoSuchElementException
 from time import sleep
 
 
@@ -100,11 +101,16 @@ class CathayScraper:
                     movie_title = parse_movie_title(movie_title)
                     showtimes_html = movie_html.find_elements_by_xpath('.//div[@class="showtimeitem_time_pms"]') # XPATH: //div[@id="showtimes"]/div[3]//div[@aria-labelledby="tab_title_link_1"]/div[1]//div[@class="showtimeitem_time_pms"]
                     for showtime_html in showtimes_html:
-                        booking_link = showtime_html.find_element_by_xpath('./a').get_attribute('data-href-stop')
-                        booking_time = showtime_html.find_element_by_xpath('./a').get_attribute('title')
+                        try:
+                            booking_link = showtime_html.find_element_by_xpath('./a').get_attribute('data-href-stop')
+                            booking_time = showtime_html.find_element_by_xpath('./a').get_attribute('title')
+                        except NoSuchElementException:
+                            # Tickets for timeslot are sold out
+                            continue
+                        print(cinema, movie_title, booking_time)
                         cinema_id, session_id = re.search(r'^https:\/\/booking.cathaycineplexes.com.sg\/Ticketing\/visSelectSeats.aspx\?cinemacode=(\d{4})&txtSessionId=(\d{5,6})&visLang=1$', booking_link).groups()
                         self.cinema_id_to_name[cinema_id] = cinema
-                        booking_time = datetime.strptime(booking_time, '%d/%m/%Y %H:%M:%S %p')
+                        booking_time = datetime.strptime(booking_time, '%d/%m/%Y %I:%M:%S %p')
                         output.append((movie_title, cinema_id, booking_time, session_id))
         return pd.DataFrame(output, columns=['Movie', 'Cinema', 'Time', 'SessionID'])
 
